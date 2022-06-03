@@ -1,0 +1,39 @@
+version: '3.9'
+
+volumes:
+  pgdata_fastapi:
+
+networks:
+  net:
+    driver: bridge
+
+services:
+
+  web:
+    build: .
+    command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
+    ports:
+      - 8080:8000
+    env_file:
+      - .env
+    depends_on:
+      - postgres-db
+    networks:
+      - net
+
+  postgres-db:
+    container_name: postgres-db
+    hostname: postgres-db
+    image: postgres:13.3
+    volumes:
+      - pgdata_fastapi:/var/lib/postgres/data/pgdata
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE}
+    networks:
+      - net
